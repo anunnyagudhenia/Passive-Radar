@@ -1,0 +1,19 @@
+% 1. Read the MP3 file
+[audio, Fs] = audioread('Sound1.mp3');  
+audio = audio(:,1); 
+
+% 2. Normalize the audio to [-1, 1]
+audio = audio / max(abs(audio));
+
+% 3. Convert MP3 to WAV for safe usage
+audiowrite('Sound1.wav', audio, Fs);
+
+% 4. Resample audio to match simulation sample time
+fs_sim = 1e9;  % Example: 1 GHz for 100 MHz carrier
+audio_resampled = resample(audio, fs_sim, Fs);
+
+% 5. Create a time vector
+t = (0:length(audio_resampled)-1)/fs_sim;
+
+% 6. Prepare a matrix for From Workspace block
+sim_audio = [t', audio_resampled];  % Column 1: time, Column 2: signal
