@@ -1,0 +1,19 @@
+CM Example 1 :	Dipole in free space 	
+CM See GetStarted.txt
+CM 
+CM 
+CM 
+CM 
+CE
+GW	1	33	-0.825	0	-0.6	0.825	0	-0.6	0.001
+GW	2	33	-0.75	0	0	0.75	0	0	0.001
+GW	3	33	-0.675	0	0.30	0.675	0	0.30	0.001
+GW	4	33	-0.675	0	0.60	0.675	0	0.60	0.001
+GW	5	33	-0.675	0	0.90	0.675	0	0.90	0.001
+GW	6	33	-0.675	0	1.2	0.675	0	1.2	0.001
+GE	0
+GN	-1
+EK
+EX	0	2	17	0	1	0	0	'Voltage source (1+j0) at wire 1 segment 5.
+FR	0	0	0	0	100	0
+EN
