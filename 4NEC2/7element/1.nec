@@ -1,0 +1,56 @@
+CM 7-el Yagi @255 MHz for UFO-11 (20 mm dia) - previous file style
+CM forw: 90, 0 ; back: 90, 180
+CE
+' Elements along Z; boom along X; units = meters
+
+SY rw=0.01       ' wire radius 0.01 m (20 mm dia)
+SY seg=41        ' segments per element (odd; center = 21)
+SY freq=255      ' design frequency in MHz
+
+' Element lengths (meters) - proven starting values
+SY Lr=0.588      ' reflector length
+SY Ld=0.553      ' driven length
+SY L1=0.529      ' director1
+SY L2=0.517      ' director2
+SY L3=0.506      ' director3
+SY L4=0.500      ' director4
+SY L5=0.494      ' director5
+
+' Half-length helpers
+SY hr=Lr/2
+SY hd=Ld/2
+SY h1=L1/2
+SY h2=L2/2
+SY h3=L3/2
+SY h4=L4/2
+SY h5=L5/2
+
+' X positions (absolute, meters)
+SY xr=-0.212     ' reflector x position (behind DE)
+SY xd=0.0        ' driven x position
+SY x1=0.141      ' director1 x
+SY x2=0.376      ' director2 x
+SY x3=0.670      ' director3 x
+SY x4=1.023      ' director4 x
+SY x5=1.411      ' director5 x
+
+' ------- GEOMETRY --------
+GW 1 41  xr 0 -hr   xr 0 hr  rw    ' Reflector
+GW 2 41  xd 0 -hd   xd 0 hd  rw    ' Driven (split @ center seg)
+GW 3 41  x1 0 -h1   x1 0 h1  rw    ' Director 1
+GW 4 41  x2 0 -h2   x2 0 h2  rw    ' Director 2
+GW 5 41  x3 0 -h3   x3 0 h3  rw    ' Director 3
+GW 6 41  x4 0 -h4   x4 0 h4  rw    ' Director 4
+GW 7 41  x5 0 -h5   x5 0 h5  rw    ' Director 5
+
+GE 0
+GN -1
+
+EX 0 2 21 0 1 0     ' feed at center of driven (seg=41 -> center=21)
+
+FR,0,1,0,0,255       ' frequency = 255 MHz
+PQ -1
+PT -1
+RP,0,361,1,1000,0,0,1,0,90   ' azimuth sweep, theta=90 (boresight)
+
+EN
