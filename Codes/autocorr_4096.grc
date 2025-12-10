@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<flow_graph>
+  <title>RTLSDR_AutoCorr_4096</title>
+  <uuid>autocorr-4096-0001</uuid>
+  <author></author>
+  <description>RTL-SDR -> Python autocorr (N=4096) -> QT GUI Vector Sink</description>
+  <blocks>
+
+    <!-- Osmocom (RTL-SDR) source -->
+    <block>
+      <key>osmosdr_source</key>
+      <id>rtl_source</id>
+      <param>
+        <name>sample_rate</name>
+        <value>2400000</value>
+      </param>
+      <param>
+        <name>frequency</name>
+        <value>100000000</value>
+      </param>
+      <param>
+        <name>gain</name>
+        <value>30</value>
+      </param>
+      <param>
+        <name>output_type</name>
+        <value>complex</value>
+      </param>
+      <param>
+        <name>label</name>
+        <value>RTL-SDR</value>
+      </param>
+      <y>100</y>
+      <x>100</x>
+    </block>
+
+    <!-- Delay block (optional, left at 0) -->
+    <block>
+      <key>delay</key>
+      <id>delay0</id>
+      <param>
+        <name>length</name>
+        <value>0</value>
+      </param>
+      <y>260</y>
+      <x>320</x>
+    </block>
+
+    <!-- Python Block: autocorrelation -->
+    <block>
+      <key>python</key>
+      <id>py_autocorr</id>
+      <param>
+        <name>code</name>
+        <value>
+# Paste the Python block code here if the GRC editor doesn't show it.
+# (Alternatively, double-click Python Block and paste the code listed in the instructions.)
+</value>
+      </param>
+      <param>
+        <name>param_str</name>
+        <value>n=4096</value>
+      </param>
+      <param>
+        <name>in_sig</name>
+        <value>complex</value>
+      </param>
+      <param>
+        <name>out_sig</name>
+        <value>(complex,4096)</value>
+      </param>
+      <y>260</y>
+      <x>520</x>
+    </block>
+
+    <!-- QT GUI Vector Sink -->
+    <block>
+      <key>qtgui_vector_sink_c</key>
+      <id>vector_sink</id>
+      <param>
+        <name>size</name>
+        <value>4096</value>
+      </param>
+      <param>
+        <name>name</name>
+        <value>Autocorrelation (magnitude)</value>
+      </param>
+      <y>460</y>
+      <x>720</x>
+    </block>
+
+    <!-- Optional Complex to Mag (if you prefer magnitude) -->
+    <block>
+      <key>complex_to_mag</key>
+      <id>c2mag</id>
+      <y>360</y>
+      <x>640</x>
+    </block>
+
+  </blocks>
+
+  <connections>
+    <!-- rtl_source (out0) -> py_autocorr (in0) -->
+    <connection>
+      <src>rtl_source:0</src>
+      <dst>py_autocorr:0</dst>
+    </connection>
+
+    <!-- rtl_source (out0) -> delay0 (in0) -->
+    <connection>
+      <src>rtl_source:0</src>
+      <dst>delay0:0</dst>
+    </connection>
+
+    <!-- delay0 (out0) -> (not used for autocorr; left in graph) -->
+    <connection>
+      <src>delay0:0</src>
+      <dst>py_autocorr:0</dst>
+    </connection>
+
+    <!-- py_autocorr (out0) -> c2mag (in0) -->
+    <connection>
+      <src>py_autocorr:0</src>
+      <dst>c2mag:0</dst>
+    </connection>
+
+    <!-- c2mag (out0) -> vector_sink (in0) -->
+    <connection>
+      <src>c2mag:0</src>
+      <dst>vector_sink:0</dst>
+    </connection>
+
+  </connections>
+
+  <options>
+    <option>
+      <name>generate_options</name>
+      <value></value>
+    </option>
+  </options>
+</flow_graph>
