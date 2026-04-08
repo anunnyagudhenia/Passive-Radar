@@ -37,7 +37,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '32000'
+    value: 1e6
   states:
     bus_sink: false
     bus_source: false
@@ -45,67 +45,101 @@ blocks:
     coordinate: [200, 12]
     rotation: 0
     state: enabled
-- name: blocks_complex_to_mag_0
-  id: blocks_complex_to_mag
+- name: analog_noise_source_x_0
+  id: analog_noise_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_type: analog.GR_GAUSSIAN
+    seed: '0'
+    type: float
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 380.0]
+    rotation: 0
+    state: enabled
+- name: blocks_delay_0
+  id: blocks_delay
   parameters:
     affinity: ''
     alias: ''
     comment: ''
+    delay: '100'
     maxoutbuf: '0'
     minoutbuf: '0'
+    num_ports: '1'
+    showports: 'False'
+    type: float
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [520, 552.0]
+    coordinate: [680, 500.0]
     rotation: 0
     state: enabled
-- name: epy_block_0
-  id: epy_block
+- name: blocks_throttle2_0
+  id: blocks_throttle2
   parameters:
-    _source_code: "import numpy as np\nfrom gnuradio import gr\n\nclass blk(gr.basic_block):\n\
-      \    \"\"\"\n    Input:  complex stream\n    Output: complex stream (normalized\
-      \ autocorrelation samples)\n    \"\"\"\n\n    def __init__(self):\n        gr.basic_block.__init__(\n\
-      \            self,\n            name=\"autocorr_stream_final\",\n          \
-      \  in_sig=[np.complex64],\n            out_sig=[np.complex64],\n        )\n\n\
-      \        self.N = 4096\n        self.buf = np.zeros(self.N, dtype=np.complex64)\n\
-      \        self.idx = 0\n\n\n    def general_work(self, input_items, output_items):\n\
-      \        x   = input_items[0]\n        out = output_items[0]\n\n        ni =\
-      \ len(x)\n        no = len(out)\n        produced = 0\n\n        # Fill buffer\n\
-      \        for i in range(ni):\n            self.buf[self.idx] = x[i]\n      \
-      \      self.idx += 1\n\n            # Buffer full \u2192 compute autocorrelation\n\
-      \            if self.idx == self.N:\n\n                # --- PRE-PROCESS BUFFER\
-      \ ---\n                buf = self.buf.copy()\n\n                # Remove DC\
-      \ offset\n                buf = buf - np.mean(buf)\n\n                # Apply\
-      \ Hanning window\n                buf = buf * np.hanning(self.N)\n\n       \
-      \         # --- AUTOCORRELATION ---\n                X = np.fft.fft(buf)\n \
-      \               R = np.fft.ifft(X * np.conj(X))\n\n                # Shift peak\
-      \ to center\n                R = np.fft.fftshift(R)\n\n                # Normalize\
-      \ amplitude to 1\n                R = R / (np.max(np.abs(R)) + 1e-12)\n\n  \
-      \              # Store for streaming\n                self.current = R.astype(np.complex64)\n\
-      \                self.current_idx = 0\n                self.idx = 0\n\n\n  \
-      \      # Stream out autocorrelation result\n        if hasattr(self, 'current'):\n\
-      \            remaining = len(self.current) - self.current_idx\n            to_output\
-      \ = min(remaining, no)\n\n            out[:to_output] = self.current[self.current_idx:self.current_idx+to_output]\n\
-      \            self.current_idx += to_output\n            produced = to_output\n\
-      \n            # Finished streaming the vector\n            if self.current_idx\
-      \ >= len(self.current):\n                del self.current\n                del\
-      \ self.current_idx\n\n        # Consume input\n        self.consume(0, ni)\n\
-      \n        return produced\n"
     affinity: ''
     alias: ''
     comment: ''
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
     maxoutbuf: '0'
     minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: float
+    vlen: '1'
   states:
-    _io_cache: '(''autocorr_stream_final'', ''blk'', [], [(''0'', ''complex'', 1)],
-      [(''0'', ''complex'', 1)], ''\n    Input:  complex stream\n    Output: complex
-      stream (normalized autocorrelation samples)\n    '', [])'
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [416, 408.0]
+    coordinate: [408, 304.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_1
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nfrom scipy.signal\
+      \ import correlate\n\n\nclass blk(gr.sync_block):\n\n    def __init__(self,\
+      \ fs=1e6, capture_len=50000):\n        gr.sync_block.__init__(\n           \
+      \ self,\n            name='live_corr_only',\n            in_sig=[np.float32,\
+      \ np.float32],\n            out_sig=[np.float32]\n        )\n\n        self.fs\
+      \ = fs\n        self.capture_len = capture_len\n\n        self.b1 = []\n   \
+      \     self.b2 = []\n\n\n    def work(self, input_items, output_items):\n\n \
+      \       ch1 = input_items[0]\n        ch2 = input_items[1]\n\n        # ----\
+      \ collect samples ----\n        self.b1.extend(ch1.tolist())\n        self.b2.extend(ch2.tolist())\n\
+      \n        if len(self.b1) >= self.capture_len:\n\n            x = np.array(self.b1)\n\
+      \            y = np.array(self.b2)\n\n            n = len(x)\n\n           \
+      \ # ===== SAME CORE LOGIC AS YOUR SCRIPT =====\n            cross_corr = correlate(\n\
+      \                x - np.mean(x),\n                y - np.mean(y),\n        \
+      \        mode='full'\n            ) / n\n            # ==========================================\n\
+      \n            # stream out part of result\n            L = len(output_items[0])\n\
+      \            output_items[0][:] = cross_corr[:L]\n\n            self.b1 = []\n\
+      \            self.b2 = []\n\n        return len(output_items[0])\n"
+    affinity: ''
+    alias: ''
+    capture_len: '500'
+    comment: ''
+    fs: 1e6
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('live_corr_only', 'blk', [('fs', '1000000.0'), ('capture_len', '50000')],
+      [('0', 'float', 1), ('1', 'float', 1)], [('0', 'float', 1)], '', ['capture_len',
+      'fs'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1000, 340.0]
     rotation: 0
     state: enabled
 - name: qtgui_time_sink_x_0
@@ -138,7 +172,7 @@ blocks:
     comment: ''
     ctrlpanel: 'False'
     entags: 'True'
-    grid: 'True'
+    grid: 'False'
     gui_hint: ''
     label1: Signal 1
     label10: Signal 10
@@ -163,7 +197,7 @@ blocks:
     marker9: '-1'
     name: '""'
     nconnections: '1'
-    size: '4096'
+    size: '1024'
     srate: samp_rate
     stemplot: 'False'
     style1: '1'
@@ -202,38 +236,16 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [704, 396.0]
-    rotation: 0
-    state: enabled
-- name: soapy_rtlsdr_source_0
-  id: soapy_rtlsdr_source
-  parameters:
-    affinity: ''
-    agc: 'False'
-    alias: ''
-    bias: 'False'
-    bufflen: '16384'
-    center_freq: '100000000'
-    comment: ''
-    dev_args: driver=rtlsdr
-    freq_correction: '0'
-    gain: '49.6'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samp_rate: '2400000'
-    type: fc32
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [48, 436.0]
+    coordinate: [1344, 316.0]
     rotation: 0
     state: enabled
 
 connections:
-- [blocks_complex_to_mag_0, '0', qtgui_time_sink_x_0, '0']
-- [epy_block_0, '0', blocks_complex_to_mag_0, '0']
-- [soapy_rtlsdr_source_0, '0', epy_block_0, '0']
+- [analog_noise_source_x_0, '0', blocks_throttle2_0, '0']
+- [blocks_delay_0, '0', epy_block_1, '1']
+- [blocks_throttle2_0, '0', blocks_delay_0, '0']
+- [blocks_throttle2_0, '0', epy_block_1, '0']
+- [epy_block_1, '0', qtgui_time_sink_x_0, '0']
 
 metadata:
   file_format: 1
