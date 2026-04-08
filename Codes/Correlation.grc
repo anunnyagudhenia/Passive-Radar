@@ -1,0 +1,118 @@
+options:
+  parameters:
+    author: anunn
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: Correlation
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Not titled yet
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: '2400000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 12]
+    rotation: 0
+    state: enabled
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport matplotlib.pyplot\
+      \ as plt\n\nclass blk(gr.sync_block):\n    def __init__(self, vec_len=2048,\
+      \ delay_samples=200):\n        gr.sync_block.__init__(\n            self,\n\
+      \            name=\"python_corr_plot\",\n            in_sig=[np.complex64],\n\
+      \            out_sig=[]\n        )\n\n        self.N = vec_len\n        self.delay\
+      \ = delay_samples\n\n        # Matplotlib setup\n        plt.ion()\n       \
+      \ self.fig, self.ax = plt.subplots()\n        self.line, = self.ax.plot(np.zeros(2*self.N-1))\n\
+      \        self.ax.set_title(\"Cross-Correlation\")\n        self.ax.set_xlabel(\"\
+      Lag (samples)\")\n        self.ax.set_ylabel(\"Magnitude\")\n\n        # buffer\
+      \ for accumulating samples\n        self.buffer = np.zeros(self.N, dtype=np.complex64)\n\
+      \        self.index = 0\n\n    def work(self, input_items, output_items):\n\
+      \        inp = input_items[0]\n\n        # how many samples needed to fill buffer\n\
+      \        needed = self.N - self.index\n\n        if len(inp) < needed:\n   \
+      \         self.buffer[self.index:self.index+len(inp)] = inp\n            self.index\
+      \ += len(inp)\n            return len(inp)\n\n        # fill remaining buffer\n\
+      \        self.buffer[self.index:] = inp[:needed]\n        self.index = 0\n\n\
+      \        # signals\n        direct = self.buffer\n        delayed = np.roll(self.buffer,\
+      \ self.delay)\n\n        # correlation\n        corr = np.abs(np.correlate(direct,\
+      \ delayed, mode=\"full\"))\n\n        # update plot\n        self.line.set_ydata(corr)\n\
+      \        self.ax.relim()\n        self.ax.autoscale_view()\n        plt.pause(0.001)\n\
+      \n        return needed\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    delay_samples: '200'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    vec_len: '256'
+  states:
+    _io_cache: ('python_corr_plot', 'blk', [('vec_len', '2048'), ('delay_samples',
+      '200')], [('0', 'complex', 1)], [], '', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [352, 348.0]
+    rotation: 0
+    state: enabled
+- name: soapy_rtlsdr_source_0
+  id: soapy_rtlsdr_source
+  parameters:
+    affinity: ''
+    agc: 'False'
+    alias: ''
+    bias: 'False'
+    bufflen: '16384'
+    center_freq: '100'
+    comment: ''
+    dev_args: driver=rtlsdr
+    freq_correction: '0'
+    gain: '20'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    type: fc32
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [0, 316.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [soapy_rtlsdr_source_0, '0', epy_block_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
