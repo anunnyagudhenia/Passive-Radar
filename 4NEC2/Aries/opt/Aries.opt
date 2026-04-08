@@ -1,0 +1,56 @@
+CM 7-el Yagi @206.5 MHz (geometry-optimized for lowest SWR, NO matching network)
+CM This version adjusts reflector/driven/director-1 lengths & spacing
+CM to raise feed impedance toward ~40–45 ohms and reduce SWR.
+CM forw: 90, 0 ; back: 90, 180
+CE
+
+SY rw=0.01
+SY seg=41
+SY freq=206.5
+
+' --- Updated lengths (rebalanced for higher Zin) ---
+SY Lr=0.748183' shorter reflector increases feed R
+SY Ld=0.715286' longer driven raises impedance
+SY L1=0.531636' slightly longer director1 shifts coupling
+SY L2=0.614531
+SY L3=0.626025
+SY L4=0.589034
+SY L5=0.57185
+
+' --- half lengths ---
+SY hr=Lr/2
+SY hd=Ld/2
+SY h1=L1/2
+SY h2=L2/2
+SY h3=L3/2
+SY h4=L4/2
+SY h5=L5/2
+
+' --- Updated spacings to lift R-in ---
+SY xr=-0.3415' reflector moved closer for higher R
+SY xd=0.000
+SY x1=0.199993' director1 moved further to reduce loading (raises R)
+SY x2=0.395513
+SY x3=0.11389
+SY x4=1.31916
+SY x5=0.904286
+
+' ------- GEOMETRY --------
+GW 1 41  xr 0 -hr   xr 0 hr  rw
+GW 2 41  xd 0 -hd   xd 0 hd  rw
+GW 3 41  x1 0 -h1   x1 0 h1  rw
+GW 4 41  x2 0 -h2   x2 0 h2  rw
+GW 5 41  x3 0 -h3   x3 0 h3  rw
+GW 6 41  x4 0 -h4   x4 0 h4  rw
+GW 7 41  x5 0 -h5   x5 0 h5  rw
+
+GE 0
+GN -1
+
+' feed
+EX 0 2 21 0 1 0
+
+FR,0,1,0,0,206.5
+PQ -1
+PT -1
+RP,0,37,73,1003,-180,0,5,5
