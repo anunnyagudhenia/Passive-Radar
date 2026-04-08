@@ -1,0 +1,51 @@
+CM 6-element Yagi @100 MHz (single-wire)
+CM forw: 90, 0 ; back: 90, 180
+CE
+' --- Wire radius ---
+SY rw=0.01' 20 mm diameter wire
+
+' --- Element lengths (meters) ---
+SY Lr=1.614181' Reflector
+SY Ld=1.452439' Driven element
+SY D1=1.343113' Director 1
+SY D2=1.309975' Director 2
+SY D3=1.175022' Director 3
+SY D4=1.255609' Director 4
+
+' --- Positions along boom (X axis) ---
+SY xr=-0.29985' Reflector behind DE
+SY xde=0.0' Driven element
+SY xd1=0.297812' Director 1
+SY xd2=0.598545' Director 2
+SY xd3=0.897319' Director 3
+SY xd4=1.244226' Director 4
+
+' --- Half-lengths ---
+SY hr=Lr/2
+SY hd=Ld/2
+SY h1=D1/2
+SY h2=D2/2
+SY h3=D3/2
+SY h4=D4/2
+
+' --- Geometry ---
+GW 1 41  xr 0 -hr   xr 0 hr  rw       ' Reflector
+GW 2 41  xde 0 -hd  xde 0 hd rw       ' Driven element
+GW 3 41  xd1 0 -h1  xd1 0 h1 rw       ' Director 1
+GW 4 41  xd2 0 -h2  xd2 0 h2 rw       ' Director 2
+GW 5 41  xd3 0 -h3  xd3 0 h3 rw       ' Director 3
+GW 6 41  xd4 0 -h4  xd4 0 h4 rw       ' Director 4
+
+GE 0
+GN -1                      ' Free-space
+
+' --- Excitation ---
+EX 0 2 21 0 1 0             ' Feed at center of driven element
+
+' --- Frequency ---
+FR,0,1,0,0,100
+
+' --- Pattern ---
+PQ -1
+PT -1
+RP,0,37,73,1003,-180,0,5,5
