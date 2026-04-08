@@ -1,0 +1,30 @@
+CM 3-el Yagi @100 MHz using your measurements (20 mm dia)
+CM forw: 90, 0 ; back: 90, 180
+CE
+' DirectorLength = 1.35 m   DirectorSpacing = +0.3 m from DE
+' ReflectorLength = 1.65 m  ReflectorSpacing = −0.30 m from DE
+' Driven (dipole) length = 1.5 m
+' Elements along Z; boom along X; units = meters
+
+SY rw=0.01        ' wire radius 0.01 m (20 mm dia)
+SY Lr=1.65        ' reflector length
+SY Ld=1.5         ' driven length
+SY Ld1=1.35       ' director length
+SY xr=-0.30       ' reflector x position (behind DE)
+SY xde=0.0        ' driven x position
+SY xd1=+0.30      ' director x position (in front of DE)
+SY hr=Lr/2
+SY hd=Ld/2
+SY h1=Ld1/2
+
+GW 1 41  xr 0 -hr   xr 0  hr  rw    ' Reflector
+GW 2 41  0  0 -hd   0  0  hd  rw    ' Driven (split @ center seg)
+GW 3 41  xd1 0 -h1  xd1 0  h1 rw    ' Director
+
+GE 0
+GN -1
+EX 0 2 21 0 1 0
+FR,0,1,0,0,100
+PQ -1
+PT -1
+RP,0,37,73,1003,-180,0,5,5
