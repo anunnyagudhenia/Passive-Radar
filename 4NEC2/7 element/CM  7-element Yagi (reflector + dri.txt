@@ -1,0 +1,90 @@
+CM  7-element Yagi (reflector + driven + 5 directors) for UFO-11 (default 437.5 MHz)
+CM  Units: meters.  Use 4NEC2 Calculate->Optimize after opening this file.
+CE
+
+' ---------- SYMBOLS (variables) ----------
+SY freq = 437.5             ' design frequency in MHz (change if needed)
+SY c = 299792458           ' speed of light (not used directly, kept for clarity)
+' approximate wavelength in meters (for reference)
+SY lambda = 300/freq       ' note: 300 (m·MHz) / freq(MHz) gives wavelength in meters
+
+' Element lengths (initial guesses). Values are in meters.
+' Typical starting values: reflector slightly > 0.5λ, driven ~0.5λ, directors shorter.
+SY Lr = 0.52*lambda       ' Reflector length (start)
+SY Ld = 0.50*lambda       ' Driven (dipole) length (start)
+SY Ldir1 = 0.48*lambda    ' Director 1 (closest to driven)
+SY Ldir2 = 0.475*lambda
+SY Ldir3 = 0.47*lambda
+SY Ldir4 = 0.465*lambda
+SY Ldir5 = 0.46*lambda
+
+' Spacings along boom (X axis). Reflector placed at negative X, driven at X=0
+SY s_r_d = 0.15*lambda    ' reflector to driven spacing (start)
+SY s_d_dir1 = 0.15*lambda ' driven to director1 spacing
+SY s_dir = 0.18*lambda    ' spacing between consecutive directors (approx)
+
+' Boom/element geometry helper (cumulative director positions)
+SY xr = -s_r_d           ' reflector x-position
+SY x0 = 0.0              ' driven at 0
+SY x1 = x0 + s_d_dir1
+SY x2 = x1 + s_dir
+SY x3 = x2 + s_dir
+SY x4 = x3 + s_dir
+SY x5 = x4 + s_dir
+
+' Wire radius (thin-wire). Adjust if you model thicker elements.
+SY rad = 0.0025          ' 2.5 mm radius (approx 5 mm diameter) -- change as needed
+
+' Segmentation: choose odd number of segments per element (increase for more accuracy)
+SY seg = 21              ' per element; ensure segment length << lambda/10
+
+' ---------- GEOMETRY (GW cards) ----------
+' Note: elements are parallel to Y axis, centered at respective X positions, at Z=0.
+' GW tag seg x1 y1 z1   x2 y2 z2   radius
+
+' Reflector (tag 1)
+GW 1  {seg}  { -Lr/2 }  0  0    { Lr/2 }  0  0   { rad }  ' reflector centered at xr offset in next MOVE
+
+' Driven element (tag 2)
+GW 2  {seg}  { -Ld/2 }  0  0    { Ld/2 }  0  0   { rad }
+
+' Directors (tags 3..7)
+GW 3  {seg}  { -Ldir1/2 }  0  0  { Ldir1/2 }  0  0  { rad }
+GW 4  {seg}  { -Ldir2/2 }  0  0  { Ldir2/2 }  0  0  { rad }
+GW 5  {seg}  { -Ldir3/2 }  0  0  { Ldir3/2 }  0  0  { rad }
+GW 6  {seg}  { -Ldir4/2 }  0  0  { Ldir4/2 }  0  0  { rad }
+GW 7  {seg}  { -Ldir5/2 }  0  0  { Ldir5/2 }  0  0  { rad }
+
+' Move each element to its X position using GM (Geometry Move)
+' GM 0 copies/moves the geometry (format: GM 0, count, ix, iy, iz, dx,dy,dz, ...)
+' Simpler: use GE (end geometry) then use GM cards per element. 4NEC2 supports GM
+' We'll use GM 0 form: (move element tag to X position)
+GM 0  7  1  0  0  { xr }  0  0   ' move tag 1 (reflector) to xr in X direction
+GM 0  7  2  0  0  { x0 }  0  0   ' driven (x0 = 0)
+GM 0  7  3  0  0  { x1 }  0  0
+GM 0  7  4  0  0  { x2 }  0  0
+GM 0  7  5  0  0  { x3 }  0  0
+GM 0  7  6  0  0  { x4 }  0  0
+GM 0  7  7  0  0  { x5 }  0  0
+
+' End geometry
+GE 0
+
+' Free-space environment
+GN 0
+
+' Excitation: feed driven element at center segment with voltage source (tag 2)
+' EX 0  Tag  Seg  0  Vreal  Vimag
+' To find the center segment: choose segment number (seg/2 rounded). 4NEC2 will map center automatically when using 'split at center'; but we'll use explicit center segment:
+SY mid = (seg + 1) / 2
+EX 0  2  {mid}  0  1.0  0.0    ' 1 V source at center of driven element (tag 2)
+
+' Frequency card (FR): format FR 0 n 0 0 freq 0 0 0 0
+FR 0 1 0 0  {freq}  0 0 0 0
+
+' Request far field pattern (RP) - quick sweep: theta steps, phi etc.
+' Here we sample full 360 azimuth at theta=90 (broadside)
+RP 0  361  1  1000  0  0  1  0  90
+
+' End deck
+EN

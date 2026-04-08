@@ -1,0 +1,57 @@
+CM 7-el Yagi @255 MHz — optimized compromise: SWR < 2, gain high
+CM Elements along Z; boom along X; units = meters (20 mm dia)
+CM forw: 90, 70 ; back: 90, 250
+CE
+
+' wire & solver settings
+SY rw=0.01       ' 20 mm dia
+SY seg=41
+SY freq=255
+
+' Element lengths (meters) - compromise / tuned
+SY Lr=0.587      ' reflector (slightly shortened)
+SY Ld=0.556      ' driven
+SY L1=0.530      ' director1 (slightly longer)
+SY L2=0.518
+SY L3=0.508      ' director3 slightly increased
+SY L4=0.499
+SY L5=0.493
+
+' Half-length helpers
+SY hr=Lr/2
+SY hd=Ld/2
+SY h1=L1/2
+SY h2=L2/2
+SY h3=L3/2
+SY h4=L4/2
+SY h5=L5/2
+
+' X positions (absolute, meters) - slight boom increase (x5 moved forward)
+SY xr=-0.195     ' reflector x position (behind driven)
+SY xd=0.0        ' driven x
+SY x1=0.180
+SY x2=0.390
+SY x3=0.680
+SY x4=1.030
+SY x5=1.400      ' outer director moved +0.01 m
+
+' Geometry (GW lines use single symbols only)
+GW 1 41  xr 0 -hr   xr 0 hr  rw    ' Reflector
+GW 2 41  xd 0 -hd   xd 0 hd  rw    ' Driven (feed at center)
+GW 3 41  x1 0 -h1   x1 0 h1  rw    ' Director 1
+GW 4 41  x2 0 -h2   x2 0 h2  rw    ' Director 2
+GW 5 41  x3 0 -h3   x3 0 h3  rw    ' Director 3
+GW 6 41  x4 0 -h4   x4 0 h4  rw    ' Director 4
+GW 7 41  x5 0 -h5   x5 0 h5  rw    ' Director 5
+
+GE 0
+GN -1
+
+' Feed at center segment (seg=41 -> center=21)
+EX 0 2 21 0 1 0
+
+' Frequency & pattern request
+FR,0,1,0,0,255
+PQ -1
+PT -1
+RP,0,37,73,1003,-180,0,5,5
