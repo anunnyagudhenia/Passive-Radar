@@ -1,0 +1,50 @@
+CM 3-el Yagi @100 MHz with Folded Dipole
+CM forw: 90, 0 ; back: 90, 180
+CE
+' Element lengths (meters)
+SY rw=0.01' wire radius 0.01 m (20 mm dia)
+SY Lr=1.652272' reflector length
+SY Ld=1.46731' driven folded dipole length (each wire)
+SY Ld1=1.303706' director length
+
+' Element positions (along X)
+SY xr=-0.30015' reflector X (behind DE)
+SY xde=0.0' driven X (folded dipole center)
+SY xd1=0.300264' director X (in front of DE)
+
+' Half-lengths for convenience
+SY hr=Lr/2
+SY hd=Ld/2
+SY h1=Ld1/2
+
+' --- Geometry ---
+' Reflector (straight wire)
+GW 1 41  xr 0 -hr   xr 0  hr  rw
+
+' Driven element: folded dipole (two parallel wires spaced ~0.02 m apart)
+SY s=0.019997' spacing between folded wires
+
+' Folded dipole wire 1
+GW 2 21  xde -s/2 -hd   xde -s/2 hd  rw
+' Folded dipole wire 2
+GW 3 21  xde +s/2 -hd   xde +s/2 hd  rw
+' Connect ends (shorting wires)
+GW 4 2   xde -s/2 -hd   xde +s/2 -hd  rw
+GW 5 2   xde -s/2  hd   xde +s/2  hd  rw
+
+' Director (straight wire)
+GW 6 41  xd1 0 -h1   xd1 0  h1  rw
+
+GE 0
+GN -1               ' Free-space
+
+' --- Excitation ---
+' Feed at center of first wire (wire 2, middle segment)
+EX 0 2 11 0 1 0      
+
+FR,0,1,0,0,100
+
+' --- Pattern ---
+PQ -1
+PT -1
+RP,0,37,73,1003,-180,0,5,5
