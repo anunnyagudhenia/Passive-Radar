@@ -1,0 +1,63 @@
+CM 6-element Yagi @100 MHz with Folded Dipole
+CE
+' --- Wire radius ---
+SY rw=0.01       ' 20 mm diameter wire
+
+' --- Element lengths (meters) ---
+SY Lr=1.65       ' Reflector
+SY Ld=1.5        ' Driven folded dipole (each wire)
+SY D1=1.35       ' Director 1
+SY D2=1.34       ' Director 2
+SY D3=1.33       ' Director 3
+SY D4=1.32       ' Director 4
+
+' --- Positions along boom (X axis) ---
+SY xr=-0.3       ' Reflector behind DE
+SY xde=0.0       ' Driven element center
+SY xd1=0.3       ' Director 1
+SY xd2=0.6       ' Director 2
+SY xd3=0.9       ' Director 3
+SY xd4=1.2       ' Director 4
+
+' --- Folded dipole spacing ---
+SY s=0.022       ' 22 mm spacing (avoids intersection, ~50 Ω)
+
+' --- Half-lengths ---
+SY hr=Lr/2
+SY hd=Ld/2
+SY h1=D1/2
+SY h2=D2/2
+SY h3=D3/2
+SY h4=D4/2
+
+' --- Geometry ---
+' Reflector
+GW 1 41  xr 0 -hr   xr 0 hr  rw
+
+' Folded dipole wires
+GW 2 21  xde -s/2 -hd   xde -s/2 hd  rw
+GW 3 21  xde +s/2 -hd   xde +s/2 hd  rw
+
+' Shorting wires at ends
+GW 4 2   xde -s/2 -hd   xde +s/2 -hd  rw
+GW 5 2   xde -s/2  hd   xde +s/2  hd  rw
+
+' Directors
+GW 6 41  xd1 0 -h1  xd1 0 h1 rw
+GW 7 41  xd2 0 -h2  xd2 0 h2 rw
+GW 8 41  xd3 0 -h3  xd3 0 h3 rw
+GW 9 41  xd4 0 -h4  xd4 0 h4 rw
+
+GE 0
+GN -1                   ' Free-space
+
+' --- Excitation ---
+EX 0 2 11 0 1 0         ' Feed at center of first wire
+
+' --- Frequency ---
+FR 0 1 0 0 100.0 0      ' 100 MHz single point
+
+' --- Pattern ---
+RP 0 361 1 1000 90 0 1 1  ' Azimuth cut
+
+EN
